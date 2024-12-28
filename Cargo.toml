@@ -1,0 +1,19 @@
+[package]
+name = "avif-converter"
+description = "Convert images to AVIF format on your browser"
+license = "BSD 2-Clause License" 
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+ravif = "0.11"
+image = "0.25"
+web-sys = { version = "0.3", features = ["console"] }
+console_error_panic_hook = "0.1"
+serde = { version = "1.0", features = ["derive"] }
+serde-wasm-bindgen = "0.6.5"

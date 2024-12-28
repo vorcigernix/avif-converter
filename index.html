@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>AVIF Converter Test</title>
+</head>
+<body>
+    <input type="file" id="fileInput" accept="image/*">
+    <div id="output"></div>
+
+    <script type="module">
+        import init, { AvifEncoder } from './pkg/avif_converter.js';
+
+        async function testConversion() {
+            await init();
+
+            const fileInput = document.getElementById('fileInput');
+            const output = document.getElementById('output');
+
+            fileInput.onchange = async function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                try {
+                    output.textContent = 'Converting...';
+                    console.time('Conversion');
+
+                    // Create an image to get dimensions
+                    const img = new Image();
+                    img.src = URL.createObjectURL(file);
+                    await new Promise(resolve => img.onload = resolve);
+
+                    // Create canvas to get RGBA data
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    
+                    // Get RGBA data
+                    const imageData = ctx.getImageData(0, 0, img.width, img.height);
+
+                    // Create and configure encoder
+                    const encoder = new AvifEncoder();
+                    encoder.set_quality(80); // 80% quality
+
+                    // Encode image
+                    console.log(`Encoding image: ${img.width}x${img.height}`);
+                    const avifData = await encoder.encode_image(imageData.data, img.width, img.height);
+                    
+                    console.timeEnd('Conversion');
+                    
+                    // Create blob and download
+                    const blob = new Blob([avifData], { type: 'image/avif' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    // Create download link
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = file.name.replace(/\.[^/.]+$/, '') + '.avif';
+                    a.click();
+                    
+                    // Show preview
+                    const preview = document.createElement('img');
+                    preview.src = url;
+                    output.textContent = '';
+                    output.appendChild(preview);
+
+                    // Add size comparison
+                    const originalSize = file.size / 1024;
+                    const avifSize = avifData.length / 1024;
+                    const compression = ((1 - avifSize / originalSize) * 100).toFixed(1);
+                    
+                    const stats = document.createElement('div');
+                    stats.innerHTML = `
+                        <p>Original size: ${originalSize.toFixed(1)} KB</p>
+                        <p>AVIF size: ${avifSize.toFixed(1)} KB</p>
+                        <p>Compression: ${compression}%</p>
+                    `;
+                    output.appendChild(stats);
+
+                } catch (error) {
+                    console.error('Conversion error:', error);
+                    output.textContent = 'Error: ' + error.message;
+                }
+            };
+        }
+
+        testConversion().catch(console.error);
+    </script>
+</body>
+</html>
