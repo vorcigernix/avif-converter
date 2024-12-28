@@ -76,6 +76,11 @@ class ImageCompressor {
     shimmerBg.className = "shimmer-background";
     previewContainer.appendChild(shimmerBg);
 
+    // Create blur wrapper
+    const blurWrapper = document.createElement("div");
+    blurWrapper.className = "blur-wrapper";
+    previewContainer.appendChild(blurWrapper);
+
     // Create blurred background image
     const bgImg = document.createElement("img");
     bgImg.src = URL.createObjectURL(file);
@@ -102,6 +107,7 @@ class ImageCompressor {
       this.reloadBtn.classList.remove("hidden");
       // Clean up the effects
       progressOverlay.remove();
+      blurWrapper.remove();
       previewContainer.querySelector(".shimmer-background").remove();
 
       // Remove blur from the original image
